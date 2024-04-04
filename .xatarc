@@ -1,0 +1,7 @@
+{
+  "databaseURL": "https://shannuboda-s-workspace-s7j279.us-east-1.xata.sh/db/augusta:main",
+  "codegen": {
+    "output": "src/xata.js",
+    "moduleType": "esm"
+  }
+}
