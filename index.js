@@ -6,10 +6,60 @@ var app = express();
 app.use(cors()); // Allows incoming requests from any IP
 // Generated with CLI
 
+// cloudinary configuration for storing images
+const cloudinary = require('cloudinary').v2;          
+cloudinary.config({ 
+  cloud_name: 'dxwoaqwbu', 
+  api_key: '173654764897852', 
+  api_secret: 'axJv02_dmOv9_JjsspYLQ9Mcl40' 
+});
+
+app.get('/clo',(req,res)=>{
+  cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
+  { public_id: "olympic_flag" }, 
+  function(error, result) {console.log(result); });
+})
+
+
+
+
+
+//image saving function in cloudinary
+let image_url_path = ""
+const upload_cloud_img = (path, name) => {
+  cloudinary.uploader.upload(
+    path,
+    { public_id: name },
+    function(error, result) {
+      if (error) {
+        console.error(error);
+        return;
+      }
+      console.log(result.url);
+      image_url_path = result.url
+     // Use result.url instead of result.path
+    }
+  );
+};
+
+// Mail Transporter setup
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "website.engineeringmaterials@gmail.com",
+    pass: "hxuzxelabqoetegg",
+  },
+});
+
+
+
+
+
 // Start by creating some disk storage options:
 const storage = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, __dirname + "/uploads");
+    
   },
   // Sets file(s) to be saved in uploads folder in same directory
   filename: function (req, file, callback) {
@@ -21,15 +71,8 @@ const storage = multer.diskStorage({
 // Set saved storage options:
 const upload = multer({ storage: storage });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "website.engineeringmaterials@gmail.com",
-    pass: "hxuzxelabqoetegg",
-  },
-});
 
-
+// Application number Random Function Setup
 function generateRandomAlphaNumeric(length) {
   const charset = '123456789';
   let result = '';
@@ -47,15 +90,25 @@ function generateApplicationID() {
   return prefix + randomChars;
 }
 
+
+//form upload API
 app.post("/api", upload.array("files"), (req, res) => {
+  upload_cloud_img(req.files[0].path,req.files[0].originalname)
+
   // Sets multer to intercept files named "files" on uploaded form data
-  SenderMailId = req.body.EmailId;
+  SenderMailId = req.body.EmailId; // sender mail id
+
+
+  //Data Storing Function
   let data = {ApplicationID:generateApplicationID(),}
 //   console.log(req.body);
 for (const [key, value] of Object.entries(req.body)) {
     data[key]=value;
   }
-data['ReceiptPath'] = req.files[0].originalname;
+data['ReceiptPath'] = image_url_path;
+
+
+//storing Data in xata.io
   const options = {
     method: 'POST',
     headers: {Authorization: 'Bearer xau_ucuJHLz9N54FKlJIPlV1eGuaSXrJYPWC0', 'Content-Type': 'application/json'},
@@ -67,7 +120,7 @@ data['ReceiptPath'] = req.files[0].originalname;
     .then(response => console.log(response))
     .catch(err => console.error(err));
 
-
+//Email Template
     const emailTemplate = `
     <!DOCTYPE html>
     <html lang="en">
@@ -136,7 +189,7 @@ data['ReceiptPath'] = req.files[0].originalname;
 
 
 console.log(data);
-  console.log(req.files[0].originalname); // Logs any files
+  console.log(req.files[0]); // Logs any files
   res.json({ message: "File(s) uploaded successfully" });
 });
 
