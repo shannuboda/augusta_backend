@@ -14,20 +14,10 @@ cloudinary.config({
   api_secret: 'axJv02_dmOv9_JjsspYLQ9Mcl40' 
 });
 
-app.get('/clo',(req,res)=>{
-  cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
-  { public_id: "olympic_flag" }, 
-  function(error, result) {console.log(result); });
-})
-
-
-
-
-
 
 //image saving function in cloudinary
 let image_url_path = ""
-const upload_cloud_img = (path, name) => {
+const upload_cloud_img = async(path, name) => {
   cloudinary.uploader.upload(
     path,
     { public_id: name },
@@ -91,6 +81,32 @@ function generateApplicationID() {
   return prefix + randomChars;
 }
 
+// create an upload middleware instance
+
+app.post('/Updateapi', upload.none(), (req, res) => {
+  let body =req.body
+let reqid = body['id']
+delete body.id
+delete body.xata
+
+  const options = {
+    method: 'PATCH',
+    headers: {Authorization: 'Bearer xau_ucuJHLz9N54FKlJIPlV1eGuaSXrJYPWC0', 'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  };
+  
+  fetch(`https://shannuboda-s-workspace-s7j279.us-east-1.xata.sh/db/augusta:main/tables/admission/data/${reqid}?columns=id`, options)
+    .then(response => response.json())
+    .then(response => console.log(response))
+    .catch(err => console.error(err));
+
+    res.json({ message: "Data Updated successfully" });
+
+  console.log(body,reqid);
+});
+
+
+
 
 //form upload API
 app.post("/api", upload.array("files"), (req, res) => {
@@ -107,7 +123,15 @@ app.post("/api", upload.array("files"), (req, res) => {
 for (const [key, value] of Object.entries(req.body)) {
     data[key]=value;
   }
-data['ReceiptPath'] = image_url_path;
+
+  const cloudinaryUrl = image_url_path;
+
+// Split the URL by '/' and extract the last part
+const parts = cloudinaryUrl.split('/');
+const extractedPart = parts[parts.length - 2] + '/' + parts[parts.length - 1];
+
+console.log(extractedPart); // Output: v1712505465/QR.jpg.jpg
+data['ReceiptPath'] = extractedPart;
 
 //storing Data in xata.io
   const options = {
@@ -116,29 +140,7 @@ data['ReceiptPath'] = image_url_path;
     body: JSON.stringify(data)
   };
   
-  // fetch('https://shannuboda-s-workspace-s7j279.us-east-1.xata.sh/db/augusta:main/tables/admission/data?columns=id', options)
-  //   .then(response => response.json())
-  //   .then(response => console.log('new value',response))
-  //   .then(response => rec_id = response['id'])
-  //   .catch(err => console.error(err));
-// fetch('https://shannuboda-s-workspace-s7j279.us-east-1.xata.sh/db/augusta:main/tables/admission/data?columns=id', options)
-//   .then(response => {
-//     if (!response.ok) {
-//       throw new Error('Failed to store data');
-//     }
-//     // Extract the ID from the Location header
-//     const locationHeader = response.headers.get('Location');
-  
-//     if (locationHeader) {
-//        rec_id.push(locationHeader.split('/').pop()); // Extract the ID from the URL
-//       console.log('New record ID:', rec_id[1]);
-//        // Store the ID in your rec_id variable
-//     } else {
-//       throw new Error('Location header not found in response');
-//     }
-//   })
-//   .catch(err => console.error(err));
-
+ 
 fetch('https://shannuboda-s-workspace-s7j279.us-east-1.xata.sh/db/augusta:main/tables/admission/data?columns=id', options)
   .then(response => {
     if (!response.ok) {

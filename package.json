@@ -5,10 +5,6 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
-<<<<<<< HEAD
-=======
-    "start":"node index.js",
->>>>>>> 0dac9929d050a9122fefa17e6bb48cf9f50cca7f
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,6 +16,7 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
+    "mysql": "^2.18.1",
     "nodemailer": "^6.9.13",
     "nodemon": "^3.1.0"
   }
